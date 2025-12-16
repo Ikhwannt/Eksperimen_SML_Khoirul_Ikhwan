@@ -66,8 +66,8 @@ def feature_scaling(df: pd.DataFrame, scaler_path: str = None):
 
     X_scaled = pd.DataFrame(X_scaled, columns=X.columns)
 
-    # Simpan scaler jika path disediakan
     if scaler_path:
+        os.makedirs(os.path.dirname(scaler_path), exist_ok=True)
         joblib.dump(scaler, scaler_path)
 
     return X_scaled, y
