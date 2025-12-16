@@ -104,8 +104,21 @@ def preprocess_pipeline(
 
     return X_scaled, y
 
+def save_processed_data(X, y, output_path):
+    df = X.copy()
+    df["target"] = y.values
+    df.to_csv(output_path, index=False)
 
 if __name__ == "__main__":
-    X, y = preprocess_pipeline()
-    print("Shape X:", X.shape)
-    print("Shape y:", y.shape)
+    X, y = preprocess_pipeline(
+        save_scaler=True,
+        scaler_path="models/standard_scaler.pkl"
+    )
+
+    save_processed_data(
+        X,
+        y,
+        output_path="data/processed/breast_cancer_preprocessed.csv"
+    )
+
+    print("[INFO] Dataset hasil preprocessing berhasil disimpan.")
