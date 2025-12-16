@@ -1,43 +1,41 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
+import joblib
+from sklearn.preprocessing import StandardScaler
 
-
-def load_dataset():
+# LOAD DATASET
+def load_dataset(
+    raw_path: str = "BreastCancer_raw.csv"
+) -> pd.DataFrame:
     """
-    Load dataset Breast Cancer dari scikit-learn
+    Load dataset Breast Cancer dari file CSV (raw)
     """
-    from sklearn.datasets import load_breast_cancer
+    if not os.path.exists(raw_path):
+        raise FileNotFoundError(f"[ERROR] Dataset tidak ditemukan di {raw_path}")
 
-    data = load_breast_cancer()
-    df = pd.DataFrame(data.data, columns=data.feature_names)
-    df["target"] = data.target
-
+    df = pd.read_csv(raw_path)
     return df
-
-
+    
+# HANDLE MISSING VALUES
 def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     """
     Menangani missing values
-    Dataset ini tidak memiliki missing value,
-    namun fungsi disiapkan untuk robustness
     """
     return df.dropna()
-
-
+    
+# REMOVE DUPLICATES
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     """
     Menghapus data duplikat jika ada
     """
     return df.drop_duplicates()
 
-
+# OUTLIER DETECTION (IQR)
 def detect_outliers_iqr(df: pd.DataFrame, feature_columns: list) -> pd.DataFrame:
     """
     Deteksi outlier menggunakan metode IQR
-    Outlier tidak dihapus (khusus kasus medis)
+    Outlier tidak dihapus (kasus medis)
     """
     Q1 = df[feature_columns].quantile(0.25)
     Q3 = df[feature_columns].quantile(0.75)
@@ -48,13 +46,12 @@ def detect_outliers_iqr(df: pd.DataFrame, feature_columns: list) -> pd.DataFrame
         (df[feature_columns] > (Q3 + 1.5 * IQR))
     )
 
-    # Hanya logging (tidak menghapus)
-    outlier_count = outlier_mask.sum().sum()
-    print(f"[INFO] Total outlier terdeteksi: {outlier_count}")
+    total_outliers = outlier_mask.sum().sum()
+    print(f"[INFO] Total outlier terdeteksi: {total_outliers}")
 
     return df
 
-
+# FEATURE SCALING
 def feature_scaling(df: pd.DataFrame, scaler_path: str = None):
     """
     Standarisasi fitur numerik menggunakan StandardScaler
@@ -73,53 +70,62 @@ def feature_scaling(df: pd.DataFrame, scaler_path: str = None):
 
     return X_scaled, y
 
+
+# SAVE PROCESSED DATA
+def save_processed_data(X, y, output_path):
+    """
+    Simpan dataset hasil preprocessing ke CSV
+    """
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    df = X.copy()
+    df["target"] = y.values
+    df.to_csv(output_path, index=False)
+
+
+# MAIN PREPROCESSING PIPELINE
 def preprocess_pipeline(
     save_scaler: bool = True,
-    scaler_path: str = "standard_scaler.pkl"
+    scaler_path: str = "preprocessing/breast_cancer_preprocessing/standard_scaler.pkl"
 ):
     """
     Pipeline preprocessing utama
     Mengembalikan data siap dilatih
     """
 
-    # 1. Load data
+    print("[INFO] Load dataset...")
     df = load_dataset()
 
-    # 2. Missing value handling
+    print("[INFO] Handle missing values...")
     df = handle_missing_values(df)
 
-    # 3. Remove duplicates
+    print("[INFO] Remove duplicates...")
     df = remove_duplicates(df)
 
-    # 4. Outlier detection
+    print("[INFO] Detect outliers...")
     feature_columns = df.drop("target", axis=1).columns.tolist()
     df = detect_outliers_iqr(df, feature_columns)
 
-    # 5. Feature scaling
+    print("[INFO] Feature scaling...")
     X_scaled, y = feature_scaling(
         df,
         scaler_path=scaler_path if save_scaler else None
     )
 
     print("[INFO] Preprocessing selesai. Data siap untuk training.")
-
     return X_scaled, y
 
-def save_processed_data(X, y, output_path):
-    df = X.copy()
-    df["target"] = y.values
-    df.to_csv(output_path, index=False)
-
+# EXECUTION
 if __name__ == "__main__":
     X, y = preprocess_pipeline(
         save_scaler=True,
-        scaler_path="models/standard_scaler.pkl"
+        scaler_path="preprocessing/breast_cancer_preprocessing/standard_scaler.pkl"
     )
 
     save_processed_data(
         X,
         y,
-        output_path="data/processed/breast_cancer_preprocessed.csv"
+        output_path="preprocessed/breast_cancer_preprocessed.csv"
     )
 
     print("[INFO] Dataset hasil preprocessing berhasil disimpan.")
