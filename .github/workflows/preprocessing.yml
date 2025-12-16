@@ -32,6 +32,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add data/processed/breast_cancer_preprocessed.csv models/standard_scaler.pkl
+          git add processed/breast_cancer_preprocessed.csv models/standard_scaler.pkl
           git commit -m "Update preprocessed dataset (auto)" || echo "No changes to commit"
           git push
