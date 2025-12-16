@@ -86,7 +86,7 @@ def save_processed_data(X, y, output_path):
 # MAIN PREPROCESSING PIPELINE
 def preprocess_pipeline(
     save_scaler: bool = True,
-    scaler_path: str = "preprocessing/breast_cancer_preprocessing/standard_scaler.pkl"
+    scaler_path: str = "preprocessing/standard_scaler.pkl"
 ):
     """
     Pipeline preprocessing utama
@@ -119,7 +119,7 @@ def preprocess_pipeline(
 if __name__ == "__main__":
     X, y = preprocess_pipeline(
         save_scaler=True,
-        scaler_path="preprocessing/breast_cancer_preprocessing/standard_scaler.pkl"
+        scaler_path="preprocessing/standard_scaler.pkl"
     )
 
     save_processed_data(
